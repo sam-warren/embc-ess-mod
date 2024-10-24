@@ -51,7 +51,7 @@ namespace EMBC.ESS.Engines.Supporting.SupportCompliance
                 .WhereNotIn(s => s.statuscode.Value, [(int)Resources.Supports.SupportStatus.Cancelled, (int)Resources.Supports.SupportStatus.Void])
                 .Where(s => s.era_name != support.Id)
                 .Where(s =>
-                        s.era_era_householdmember_era_evacueesupport.Any(h => h.era_dateofbirth == hm.era_dateofbirth && h.era_firstname == hm.era_firstname && h.era_lastname == hm.era_lastname) &&
+                        s.era_era_householdmember_era_evacueesupport.Any(h => h.era_dateofbirth == hm.era_dateofbirth && SimilarNames(h.era_firstname, hm.era_firstname) && SimilarNames(h.era_lastname, hm.era_lastname)) &&
                         ((s.era_validfrom >= from && s.era_validfrom <= to) || (s.era_validto >= from && s.era_validto <= to) || (s.era_validfrom < from && s.era_validto > to)))
             .GetAllPagesAsync(ct);
         }
@@ -65,6 +65,24 @@ namespace EMBC.ESS.Engines.Supporting.SupportCompliance
 
                 _ => [type]
             };
+
+        private static bool SimilarNames(string name1, string name2)
+        {
+            Console.WriteLine("Comparing names: {0} and {1}", name1, name2);
+            name1 = NormalizeName(name1);
+            name2 = NormalizeName(name2);
+
+            // If either name is null, return false.
+            if (name1 == null || name2 == null) return false;
+
+            // The names are the same. Return true.
+            if (name1 == name2) return true;
+
+            // The names are different. But are they similar?
+            return name1 == name2;
+        }
+
+        private static string NormalizeName(string name) => name?.Trim().ToLowerInvariant();
 
         private enum SupportType
         {
